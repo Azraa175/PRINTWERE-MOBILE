@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "PrintWere",
+    "slug": "printwere-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#2563EB"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2563EB"
+      },
+      "package": "com.printwere.customer"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Izinkan PrintWere mengakses foto untuk unggah file desain dan bukti pembayaran."
+        }
+      ]
+    ]
+  }
+}
