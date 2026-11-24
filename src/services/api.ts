@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEFAULT_BASE_URL = 'http://10.10.10.229:3000';
+const DEFAULT_BASE_URL = 'https://printwere.vercel.app';
 const STORAGE_KEY_BASE_URL = '@printwere_base_url';
 const STORAGE_KEY_TOKEN = '@printwere_token';
 
