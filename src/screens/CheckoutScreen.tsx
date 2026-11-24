@@ -98,20 +98,35 @@ export const CheckoutScreen = ({ navigation }: any) => {
       if (res.success && res.data) {
         clearCart();
         const createdOrder = res.data;
-        Alert.alert(
-          'Pesanan Berhasil Dibuat!',
-          `Nomor Pesanan: ${createdOrder.orderNo}\nSilakan selesaikan pembayaran agar pesanan segera masuk ke antrean cetak.`,
-          [
-            {
-              text: 'Bayar Sekarang',
-              onPress: () => navigation.replace('PaymentUpload', { orderId: createdOrder.id }),
-            },
-            {
-              text: 'Lihat Detail',
-              onPress: () => navigation.replace('OrderDetail', { orderId: createdOrder.id }),
-            },
-          ]
-        );
+        if (paymentMethod === 'QRIS') {
+          // QRIS: no upload needed, go directly to order detail
+          Alert.alert(
+            'Pesanan Dibuat!',
+            `No. Pesanan: ${createdOrder.orderNo}\nSilakan selesaikan pembayaran QRIS.`,
+            [
+              {
+                text: 'Lihat Detail',
+                onPress: () => navigation.replace('OrderDetail', { orderId: createdOrder.id }),
+              },
+            ]
+          );
+        } else {
+          // TRANSFER / COD: go to upload payment proof
+          Alert.alert(
+            'Pesanan Dibuat!',
+            `No. Pesanan: ${createdOrder.orderNo}\nSilakan upload bukti pembayaran.`,
+            [
+              {
+                text: 'Upload Bukti',
+                onPress: () => navigation.replace('PaymentUpload', { orderId: createdOrder.id }),
+              },
+              {
+                text: 'Lihat Detail',
+                onPress: () => navigation.replace('OrderDetail', { orderId: createdOrder.id }),
+              },
+            ]
+          );
+        }
       } else {
         Alert.alert('Gagal', res.error || 'Gagal memproses pesanan');
       }
@@ -129,7 +144,7 @@ export const CheckoutScreen = ({ navigation }: any) => {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={20} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={styles.topNavTitle}>Konfirmasi Checkout</Text>
+        <Text style={styles.topNavTitle}>Checkout</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -138,11 +153,11 @@ export const CheckoutScreen = ({ navigation }: any) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <MapPin size={18} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Informasi Penerima</Text>
+            <Text style={styles.sectionTitle}>Info Penerima</Text>
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Nama Lengkap</Text>
+            <Text style={styles.fieldLabel}>Nama</Text>
             <TextInput
               style={styles.textInput}
               value={recipientName}
@@ -152,7 +167,7 @@ export const CheckoutScreen = ({ navigation }: any) => {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Nomor WhatsApp / Telepon</Text>
+            <Text style={styles.fieldLabel}>No. WhatsApp</Text>
             <TextInput
               style={styles.textInput}
               value={recipientPhone}
@@ -163,12 +178,12 @@ export const CheckoutScreen = ({ navigation }: any) => {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Alamat Pengiriman / Domisili</Text>
+            <Text style={styles.fieldLabel}>Alamat</Text>
             <TextInput
               style={[styles.textInput, styles.textArea]}
               value={shippingAddress}
               onChangeText={setShippingAddress}
-              placeholder="Alamat lengkap tujuan kirim atau patokan pengambilan"
+              placeholder="Alamat lengkap"
               multiline
             />
           </View>
@@ -178,7 +193,7 @@ export const CheckoutScreen = ({ navigation }: any) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Truck size={18} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Metode Pengambilan / Kirim</Text>
+            <Text style={styles.sectionTitle}>Pengiriman</Text>
           </View>
 
           <View style={styles.optionsList}>
@@ -190,9 +205,9 @@ export const CheckoutScreen = ({ navigation }: any) => {
                 <Store size={20} color={deliveryType === 'PICKUP' ? '#2563EB' : '#64748B'} />
                 <View>
                   <Text style={[styles.optionName, deliveryType === 'PICKUP' && styles.optionNameActive]}>
-                    Ambil Langsung di Percetakan
+                    Ambil di Toko
                   </Text>
-                  <Text style={styles.optionSub}>Bebas ongkos kirim saat cetakan siap</Text>
+                  <Text style={styles.optionSub}>Gratis ongkir</Text>
                 </View>
               </View>
               <Text style={styles.optionCost}>Rp 0</Text>
@@ -206,9 +221,9 @@ export const CheckoutScreen = ({ navigation }: any) => {
                 <Truck size={20} color={deliveryType === 'COURIER' ? '#2563EB' : '#64748B'} />
                 <View>
                   <Text style={[styles.optionName, deliveryType === 'COURIER' && styles.optionNameActive]}>
-                    Pengiriman Kurir Ekspedisi
+                    Kurir Ekspedisi
                   </Text>
-                  <Text style={styles.optionSub}>JNE, J&T, atau Kurir Lokal (1-3 hari)</Text>
+                  <Text style={styles.optionSub}>JNE / J&T (1-3 hari)</Text>
                 </View>
               </View>
               <Text style={styles.optionCost}>Rp 15.000</Text>
@@ -220,7 +235,7 @@ export const CheckoutScreen = ({ navigation }: any) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <CreditCard size={18} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Metode Pembayaran</Text>
+            <Text style={styles.sectionTitle}>Pembayaran</Text>
           </View>
 
           <View style={styles.optionsList}>
@@ -248,9 +263,9 @@ export const CheckoutScreen = ({ navigation }: any) => {
                 <QrCode size={20} color={paymentMethod === 'QRIS' ? '#2563EB' : '#64748B'} />
                 <View>
                   <Text style={[styles.optionName, paymentMethod === 'QRIS' && styles.optionNameActive]}>
-                    QRIS & E-Wallet
+                    QRIS / E-Wallet
                   </Text>
-                  <Text style={styles.optionSub}>GoPay, OVO, DANA, ShopeePay</Text>
+                  <Text style={styles.optionSub}>GoPay, OVO, DANA</Text>
                 </View>
               </View>
               {paymentMethod === 'QRIS' && <CheckCircle2 size={18} color="#2563EB" />}
@@ -264,9 +279,9 @@ export const CheckoutScreen = ({ navigation }: any) => {
                 <Store size={20} color={paymentMethod === 'COD' ? '#2563EB' : '#64748B'} />
                 <View>
                   <Text style={[styles.optionName, paymentMethod === 'COD' && styles.optionNameActive]}>
-                    Bayar di Kasir (COD)
+                    Bayar di Kasir
                   </Text>
-                  <Text style={styles.optionSub}>Bayar tunai saat pesanan diambil</Text>
+                  <Text style={styles.optionSub}>Bayar tunai saat diambil</Text>
                 </View>
               </View>
               {paymentMethod === 'COD' && <CheckCircle2 size={18} color="#2563EB" />}
@@ -276,15 +291,15 @@ export const CheckoutScreen = ({ navigation }: any) => {
 
         {/* Cost Summary */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Ringkasan Pembayaran</Text>
+          <Text style={styles.summaryTitle}>Ringkasan</Text>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Harga Produk ({items.length} item)</Text>
+            <Text style={styles.summaryLabel}>Produk ({items.length} item)</Text>
             <Text style={styles.summaryValue}>{formatRupiah(totalAmount)}</Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Biaya Ongkir</Text>
+            <Text style={styles.summaryLabel}>Ongkir</Text>
             <Text style={styles.summaryValue}>{formatRupiah(shippingCost)}</Text>
           </View>
 

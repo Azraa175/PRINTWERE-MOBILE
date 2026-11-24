@@ -296,15 +296,25 @@ export const OrdersScreen = ({ navigation }: any) => {
 
                   <View style={styles.actionButtonsRow}>
                     {(isNeedPayment || isRejected) ? (
-                      <TouchableOpacity
-                        style={[styles.payNowBtn, isRejected && { backgroundColor: '#DC2626' }]}
-                        onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
-                      >
-                        <CreditCard size={14} color="#FFFFFF" />
-                        <Text style={styles.payNowBtnText}>
-                          {isRejected ? 'Upload Ulang' : 'Upload Bayar'}
-                        </Text>
-                      </TouchableOpacity>
+                      order.paymentMethod === 'QRIS' ? (
+                        <TouchableOpacity
+                          style={styles.trackBtn}
+                          onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
+                        >
+                          <Text style={styles.trackBtnText}>Detail</Text>
+                          <ChevronRight size={14} color="#2563EB" />
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={[styles.payNowBtn, isRejected && { backgroundColor: '#DC2626' }]}
+                          onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
+                        >
+                          <CreditCard size={14} color="#FFFFFF" />
+                          <Text style={styles.payNowBtnText}>
+                            {isRejected ? 'Upload Ulang' : 'Upload Bukti'}
+                          </Text>
+                        </TouchableOpacity>
+                      )
                     ) : isDone ? (
                       <TouchableOpacity
                         style={styles.invoiceBtn}

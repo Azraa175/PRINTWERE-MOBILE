@@ -228,23 +228,27 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
           <View style={[styles.paymentAlertBox, isPaymentRejected && { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
             <View style={styles.paymentAlertContent}>
               <Text style={[styles.paymentAlertTitle, isPaymentRejected && { color: '#991B1B' }]}>
-                {isPaymentRejected ? '⚠️ Bukti Transfer Ditolak' : '💳 Selesaikan Pembayaran'}
+                {isPaymentRejected ? 'Bukti Ditolak' : (order.paymentMethod === 'QRIS' ? 'Bayar QRIS' : 'Bayar Sekarang')}
               </Text>
               <Text style={[styles.paymentAlertDesc, isPaymentRejected && { color: '#B91C1C' }]}>
                 {isPaymentRejected
-                  ? 'Admin menolak bukti pembayaran. Periksa dan upload ulang.'
-                  : `Total tagihan: ${formatRupiah(order.totalAmount)}`}
+                  ? 'Admin menolak bukti pembayaran. Upload ulang.'
+                  : (order.paymentMethod === 'QRIS'
+                      ? 'Selesaikan pembayaran QRIS di kasir/outlet.'
+                      : `Total: ${formatRupiah(order.totalAmount)}`)}
               </Text>
             </View>
-            <TouchableOpacity
-              style={[styles.uploadProofBtn, isPaymentRejected && { backgroundColor: '#DC2626' }]}
-              onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
-            >
-              <CreditCard size={16} color="#FFFFFF" />
-              <Text style={styles.uploadProofBtnText}>
-                {isPaymentRejected ? 'Upload Ulang' : 'Bayar Sekarang'}
-              </Text>
-            </TouchableOpacity>
+            {order.paymentMethod !== 'QRIS' && (
+              <TouchableOpacity
+                style={[styles.uploadProofBtn, isPaymentRejected && { backgroundColor: '#DC2626' }]}
+                onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
+              >
+                <CreditCard size={16} color="#FFFFFF" />
+                <Text style={styles.uploadProofBtnText}>
+                  {isPaymentRejected ? 'Upload Ulang' : 'Upload Bukti'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -253,9 +257,9 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
           <View style={styles.shippingBanner}>
             <Truck size={18} color="#0891B2" />
             <View style={styles.shippingBannerText}>
-              <Text style={styles.shippingBannerTitle}>Paket Sedang Dikirim</Text>
+              <Text style={styles.shippingBannerTitle}>Paket Dikirim</Text>
               <Text style={styles.shippingBannerSub}>
-                Hubungi kami jika membutuhkan nomor resi pengiriman.
+                Hubungi kami untuk nomor resi.
               </Text>
             </View>
           </View>
@@ -265,7 +269,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
         {isCancelled && (
           <View style={styles.cancelledBanner}>
             <Text style={styles.cancelledBannerText}>
-              ✕ Pesanan ini telah dibatalkan. Silakan hubungi kami untuk informasi lebih lanjut.
+              Pesanan dibatalkan. Hubungi kami untuk info.
             </Text>
           </View>
         )}
@@ -274,7 +278,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
         {isDone && (
           <View style={styles.doneBanner}>
             <CheckCircle2 size={18} color="#16A34A" />
-            <Text style={styles.doneBannerText}>Pesanan selesai. Terima kasih telah mempercayai PrintWere!</Text>
+            <Text style={styles.doneBannerText}>Pesanan selesai. Terima kasih!</Text>
           </View>
         )}
 
@@ -291,7 +295,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
 
         {/* Ordered Items */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Produk Dipesan ({order.items?.length || 0})</Text>
+          <Text style={styles.sectionTitle}>Produk ({order.items?.length || 0})</Text>
           <View style={styles.itemsList}>
             {order.items?.map((item, idx) => {
               const isM2 = item.product?.priceType === 'M2' || (item.width && item.height);
@@ -344,7 +348,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
 
         {/* Shipping Info */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Pengiriman &amp; Pengambilan</Text>
+          <Text style={styles.sectionTitle}>Pengiriman</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Metode Kirim</Text>
             <Text style={styles.infoValue}>{order.shippingMethod || 'Ambil Sendiri'}</Text>
@@ -369,7 +373,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
 
         {/* Payment Summary */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Rincian Pembayaran</Text>
+          <Text style={styles.sectionTitle}>Pembayaran</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Metode Bayar</Text>
             <Text style={styles.infoValue}>{order.paymentMethod || 'TRANSFER'}</Text>
@@ -423,7 +427,7 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
         {/* Status History Logs */}
         {order.statusLogs && order.statusLogs.length > 0 && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Riwayat Alur Pengerjaan</Text>
+            <Text style={styles.sectionTitle}>Riwayat Alur</Text>
             <View style={styles.logsList}>
               {order.statusLogs.map((log, idx) => (
                 <View key={idx} style={styles.logRow}>

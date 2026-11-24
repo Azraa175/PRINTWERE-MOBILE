@@ -12,7 +12,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <NavigationContainer>
-            <StatusBar style="dark" backgroundColor="#FFFFFF" />
+            <StatusBar style="dark" />
             <AppNavigator />
           </NavigationContainer>
         </CartProvider>

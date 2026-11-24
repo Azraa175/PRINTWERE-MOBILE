@@ -163,10 +163,10 @@ export const HomeScreen = ({ navigation }: any) => {
         {/* User Greeting */}
         <View style={styles.greetingContainer}>
           <Text style={styles.greetingTitle}>
-            {getGreeting()}, {user ? user.name.split(' ')[0] : 'Pelanggan'}! 👋
+            {getGreeting()}, {user ? user.name.split(' ')[0] : 'Pelanggan'}!
           </Text>
           <Text style={styles.greetingDesc}>
-            Mau cetak apa hari ini? Pesanan siap kami kerjakan.
+            Mau cetak apa hari ini?
           </Text>
         </View>
 
@@ -199,11 +199,11 @@ export const HomeScreen = ({ navigation }: any) => {
         <View style={styles.heroCard}>
           <View style={styles.heroBadge}>
             <Sparkles size={12} color="#93C5FD" />
-            <Text style={styles.heroBadgeText}>Percetakan Online No. 1</Text>
+            <Text style={styles.heroBadgeText}>Percetakan Online #1</Text>
           </View>
-          <Text style={styles.heroTitle}>Cepat, Presisi &amp; Kualitas Premium</Text>
+          <Text style={styles.heroTitle}>Cepat, Presisi &amp; Premium</Text>
           <Text style={styles.heroDesc}>
-            Spanduk M², brosur, stiker, hingga dokumen bisnis selesai tepat waktu.
+            Spanduk, brosur, stiker, dokumen bisnis — siap tepat waktu.
           </Text>
           <View style={styles.heroActions}>
             <TouchableOpacity
@@ -228,11 +228,11 @@ export const HomeScreen = ({ navigation }: any) => {
         <View style={styles.trackCard}>
           <View style={styles.trackHeader}>
             <Search size={16} color="#2563EB" />
-            <Text style={styles.trackTitle}>Lacak Pesanan Cepat</Text>
+            <Text style={styles.trackTitle}>Lacak Pesanan</Text>
           </View>
           <View style={styles.trackInputRow}>
             <TextInput
-              placeholder="Masukkan No. Pesanan (PW-...)"
+              placeholder="No. Pesanan (PW-...)"
               placeholderTextColor="#94A3B8"
               value={trackQuery}
               onChangeText={setTrackQuery}
@@ -266,7 +266,7 @@ export const HomeScreen = ({ navigation }: any) => {
         <View style={styles.sectionHeader}>
           <View>
             <Text style={styles.sectionTitle}>Produk Pilihan</Text>
-            <Text style={styles.sectionSub}>Bahan terbaik untuk hasil maksimal</Text>
+            <Text style={styles.sectionSub}>Bahan terbaik, hasil maksimal</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Katalog')}>
             <Text style={styles.seeAllText}>Semua →</Text>
@@ -339,8 +339,8 @@ export const HomeScreen = ({ navigation }: any) => {
         >
           <Printer size={20} color="#2563EB" />
           <View style={styles.ctaText}>
-            <Text style={styles.ctaTitle}>Lihat Semua Produk</Text>
-            <Text style={styles.ctaSub}>Temukan lebih banyak pilihan percetakan</Text>
+            <Text style={styles.ctaTitle}>Semua Produk</Text>
+            <Text style={styles.ctaSub}>Lihat pilihan percetakan lainnya</Text>
           </View>
           <ArrowRight size={18} color="#2563EB" />
         </TouchableOpacity>

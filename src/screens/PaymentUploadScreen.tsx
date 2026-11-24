@@ -208,135 +208,148 @@ export const PaymentUploadScreen = ({ route, navigation }: any) => {
 
         {/* Bill Summary Banner */}
         <View style={styles.billCard}>
-          <Text style={styles.billLabel}>Total yang Harus Ditransfer</Text>
+          <Text style={styles.billLabel}>Total Tagihan</Text>
           <Text style={styles.billAmount}>{formatRupiah(order.totalAmount)}</Text>
           <View style={styles.billOrderRow}>
             <Text style={styles.billOrderNo}>
               {order.orderNo || `#${order.id.slice(0, 8)}`}
             </Text>
-            <TouchableOpacity onPress={() => { Clipboard.setString(order.totalAmount.toString()); Alert.alert('Tersalin', 'Nominal telah disalin.'); }}>
-              <Text style={styles.billCopyHint}>Ketuk nominal untuk salin</Text>
+            <TouchableOpacity onPress={() => { Clipboard.setString(order.totalAmount.toString()); Alert.alert('Tersalin', 'Nominal disalin.'); }}>
+              <Text style={styles.billCopyHint}>Salin</Text>
             </TouchableOpacity>
           </View>
-          {order.dueDate && (
-            <Text style={styles.billDueDate}>
-              ⏰ Batas pembayaran: {new Date(order.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </View>
+
+        {/* QRIS Notice if order is QRIS */}
+        {order.paymentMethod === 'QRIS' ? (
+          <View style={styles.reminderCard}>
+            <AlertCircle size={15} color="#2563EB" />
+            <Text style={[styles.reminderText, { color: '#1E40AF' }]}>
+              Pesanan ini menggunakan QRIS. Pembayaran diverifikasi otomatis tanpa upload bukti transfer.
             </Text>
-          )}
-        </View>
-
-        {/* Important reminder */}
-        <View style={styles.reminderCard}>
-          <AlertCircle size={15} color="#D97706" />
-          <Text style={styles.reminderText}>
-            Transfer <Text style={{ fontWeight: '800', color: '#92400E' }}>tepat sesuai nominal</Text> tagihan. Pembayaran kurang atau lebih akan diproses manual.
-          </Text>
-        </View>
-
-        {/* Bank Accounts */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Building size={18} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Rekening Resmi PrintWere</Text>
           </View>
-          <Text style={styles.sectionDesc}>
-            Transfer ke salah satu rekening di bawah ini:
-          </Text>
+        ) : (
+          <>
+            {/* Reminder */}
+            <View style={styles.reminderCard}>
+              <AlertCircle size={15} color="#D97706" />
+              <Text style={styles.reminderText}>
+                Transfer <Text style={{ fontWeight: '700', color: '#92400E' }}>tepat sesuai nominal</Text> tagihan.
+              </Text>
+            </View>
 
-          <View style={styles.banksList}>
-            {BANK_ACCOUNTS.map((bank, idx) => (
-              <View key={idx} style={[styles.bankCard, { borderLeftColor: bank.color, borderLeftWidth: 4 }]}>
-                <View style={styles.bankInfo}>
-                  <View style={[styles.bankNameBadge, { backgroundColor: bank.color + '15' }]}>
-                    <Text style={[styles.bankName, { color: bank.color }]}>{bank.bank}</Text>
+            {/* Bank Accounts */}
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Building size={18} color="#2563EB" />
+                <Text style={styles.sectionTitle}>Rekening PrintWere</Text>
+              </View>
+
+              <View style={styles.banksList}>
+                {BANK_ACCOUNTS.map((bank, idx) => (
+                  <View key={idx} style={[styles.bankCard, { borderLeftColor: bank.color, borderLeftWidth: 4 }]}>
+                    <View style={styles.bankInfo}>
+                      <View style={[styles.bankNameBadge, { backgroundColor: bank.color + '15' }]}>
+                        <Text style={[styles.bankName, { color: bank.color }]}>{bank.bank}</Text>
+                      </View>
+                      <Text style={styles.bankNo}>{bank.no}</Text>
+                      <Text style={styles.bankHolder}>a.n. {bank.name}</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.copyBtn}
+                      onPress={() => copyAccountNo(bank.no, bank.bank)}
+                    >
+                      <Copy size={14} color="#2563EB" />
+                      <Text style={styles.copyBtnText}>Salin</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Text style={styles.bankNo}>{bank.no}</Text>
-                  <Text style={styles.bankHolder}>a.n. {bank.name}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.copyBtn}
-                  onPress={() => copyAccountNo(bank.no, bank.bank)}
-                >
-                  <Copy size={14} color="#2563EB" />
-                  <Text style={styles.copyBtnText}>Salin</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Upload Receipt Section */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Upload size={18} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Unggah Bukti Transfer</Text>
-          </View>
-          <Text style={styles.sectionDesc}>
-            Foto struk ATM, m-Banking, atau screenshot QRIS yang jelas dan tidak terpotong.
-          </Text>
-
-          {proofImage ? (
-            <View style={styles.previewBox}>
-              <Image source={{ uri: proofImage }} style={styles.previewImg} resizeMode="cover" />
-              {imageSize ? (
-                <View style={styles.imageSizeBadge}>
-                  <Text style={styles.imageSizeText}>📁 {imageSize}</Text>
-                </View>
-              ) : null}
-              <View style={styles.previewActions}>
-                <TouchableOpacity style={styles.rePickBtn} onPress={handlePickProof}>
-                  <ImageIcon size={15} color="#2563EB" />
-                  <Text style={styles.rePickBtnText}>Ganti dari Galeri</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.reCameraBtn} onPress={handleTakePhoto}>
-                  <Camera size={15} color="#059669" />
-                  <Text style={styles.reCameraBtnText}>Foto Ulang</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.previewCheckRow}>
-                <CheckCircle2 size={16} color="#16A34A" />
-                <Text style={styles.previewCheckText}>Foto dipilih — periksa kejelasannya</Text>
+                ))}
               </View>
             </View>
-          ) : (
-            <View>
-              <TouchableOpacity style={styles.uploadArea} onPress={handlePickProof}>
-                <Upload size={34} color="#2563EB" />
-                <Text style={styles.uploadMainText}>Pilih dari Galeri</Text>
-                <Text style={styles.uploadSubText}>JPG / PNG · Maks. 10MB</Text>
-              </TouchableOpacity>
-              <View style={styles.uploadDivider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>atau</Text>
-                <View style={styles.dividerLine} />
+
+            {/* Upload Receipt Section */}
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Upload size={18} color="#2563EB" />
+                <Text style={styles.sectionTitle}>Bukti Pembayaran</Text>
               </View>
-              <TouchableOpacity style={styles.cameraBtn} onPress={handleTakePhoto}>
-                <Camera size={18} color="#059669" />
-                <Text style={styles.cameraBtnText}>Ambil Foto Langsung</Text>
-              </TouchableOpacity>
+              <Text style={styles.sectionDesc}>
+                Foto struk transfer yang jelas dan terbaca.
+              </Text>
+
+              {proofImage ? (
+                <View style={styles.previewBox}>
+                  <Image source={{ uri: proofImage }} style={styles.previewImg} resizeMode="cover" />
+                  {imageSize ? (
+                    <View style={styles.imageSizeBadge}>
+                      <Text style={styles.imageSizeText}>📁 {imageSize}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.previewActions}>
+                    <TouchableOpacity style={styles.rePickBtn} onPress={handlePickProof}>
+                      <ImageIcon size={15} color="#2563EB" />
+                      <Text style={styles.rePickBtnText}>Ganti</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.reCameraBtn} onPress={handleTakePhoto}>
+                      <Camera size={15} color="#059669" />
+                      <Text style={styles.reCameraBtnText}>Foto Ulang</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.previewCheckRow}>
+                    <CheckCircle2 size={16} color="#16A34A" />
+                    <Text style={styles.previewCheckText}>Foto dipilih</Text>
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <TouchableOpacity style={styles.uploadArea} onPress={handlePickProof}>
+                    <Upload size={30} color="#2563EB" />
+                    <Text style={styles.uploadMainText}>Pilih dari Galeri</Text>
+                    <Text style={styles.uploadSubText}>JPG / PNG · Maks. 10MB</Text>
+                  </TouchableOpacity>
+                  <View style={styles.uploadDivider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>atau</Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+                  <TouchableOpacity style={styles.cameraBtn} onPress={handleTakePhoto}>
+                    <Camera size={18} color="#059669" />
+                    <Text style={styles.cameraBtnText}>Ambil Foto</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          )}
-        </View>
+          </>
+        )}
       </ScrollView>
 
       {/* Bottom Submit Button */}
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <TouchableOpacity
-          style={[styles.submitBtn, (!proofImage || isSubmitting) && styles.submitBtnDisabled]}
-          onPress={handleSubmitProof}
-          disabled={!proofImage || isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <>
-              <CheckCircle2 size={18} color={proofImage ? '#FFFFFF' : '#94A3B8'} />
-              <Text style={[styles.submitBtnText, !proofImage && { color: '#94A3B8' }]}>
-                {proofImage ? 'Konfirmasi & Kirim Bukti' : 'Pilih Foto Bukti Dulu'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {order.paymentMethod === 'QRIS' ? (
+          <TouchableOpacity
+            style={styles.submitBtn}
+            onPress={() => navigation.replace('OrderDetail', { orderId })}
+          >
+            <Text style={styles.submitBtnText}>Lihat Detail Pesanan</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.submitBtn, (!proofImage || isSubmitting) && styles.submitBtnDisabled]}
+            onPress={handleSubmitProof}
+            disabled={!proofImage || isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <CheckCircle2 size={18} color={proofImage ? '#FFFFFF' : '#94A3B8'} />
+                <Text style={[styles.submitBtnText, !proofImage && { color: '#94A3B8' }]}>
+                  {proofImage ? 'Kirim Bukti' : 'Pilih Foto Bukti'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
