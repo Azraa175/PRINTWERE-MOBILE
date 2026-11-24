@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [serverUrl, setServerUrlState] = useState('http://192.168.18.78:3000');
+  const [serverUrl, setServerUrlState] = useState('http://10.10.10.229:3000');
 
   useEffect(() => {
     loadInitialData();
