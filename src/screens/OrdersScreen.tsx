@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,23 @@ import {
   RefreshControl,
   ActivityIndicator,
   Image,
+  Clipboard,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  Package, 
-  ChevronRight, 
-  CreditCard, 
-  AlertCircle, 
-  Calendar,
+import {
+  Package,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Printer,
+  Truck,
+  Clock3,
   Layers,
-  ArrowRight
+  Star,
 } from 'lucide-react-native';
 import { api, getBaseUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -27,9 +34,28 @@ const TABS = [
   { id: 'all', label: 'Semua' },
   { id: 'MENUNGGU_PEMBAYARAN', label: 'Belum Bayar' },
   { id: 'MENUNGGU_VERIFIKASI', label: 'Verifikasi' },
-  { id: 'SEDANG_DICETAK', label: 'Proses Cetak' },
+  { id: 'ANTRIAN_PRODUKSI', label: 'Antrean' },
+  { id: 'SEDANG_DICETAK', label: 'Dicetak' },
+  { id: 'FINISHING', label: 'Finishing' },
+  { id: 'SIAP_DIAMBIL', label: 'Siap Ambil' },
+  { id: 'DIKIRIM', label: 'Dikirim' },
   { id: 'SELESAI', label: 'Selesai' },
+  { id: 'PEMBAYARAN_DITOLAK', label: 'Ditolak' },
+  { id: 'DIBATALKAN', label: 'Dibatalkan' },
 ];
+
+const STATUS_ICONS: Record<string, React.ReactNode> = {
+  MENUNGGU_PEMBAYARAN: <CreditCard size={14} color="#D97706" />,
+  MENUNGGU_VERIFIKASI: <Clock3 size={14} color="#2563EB" />,
+  ANTRIAN_PRODUKSI: <Layers size={14} color="#9333EA" />,
+  SEDANG_DICETAK: <Printer size={14} color="#4F46E5" />,
+  FINISHING: <Star size={14} color="#0891B2" />,
+  SIAP_DIAMBIL: <CheckCircle2 size={14} color="#059669" />,
+  DIKIRIM: <Truck size={14} color="#0891B2" />,
+  SELESAI: <CheckCircle2 size={14} color="#16A34A" />,
+  PEMBAYARAN_DITOLAK: <XCircle size={14} color="#DC2626" />,
+  DIBATALKAN: <XCircle size={14} color="#475569" />,
+};
 
 export const OrdersScreen = ({ navigation }: any) => {
   const insets = useSafeAreaInsets();
@@ -40,7 +66,7 @@ export const OrdersScreen = ({ navigation }: any) => {
   const [selectedTab, setSelectedTab] = useState('all');
   const [serverBase, setServerBase] = useState('');
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     if (!user) {
       setLoading(false);
       setRefreshing(false);
@@ -59,15 +85,15 @@ export const OrdersScreen = ({ navigation }: any) => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [selectedTab, user]);
 
   useEffect(() => {
+    setLoading(true);
     loadOrders();
   }, [selectedTab, user]);
 
-  const formatRupiah = (val: number) => {
-    return 'Rp ' + Math.round(val).toLocaleString('id-ID');
-  };
+  const formatRupiah = (val: number) =>
+    'Rp ' + Math.round(val).toLocaleString('id-ID');
 
   const formatDate = (dateStr: string) => {
     try {
@@ -88,10 +114,15 @@ export const OrdersScreen = ({ navigation }: any) => {
     return `${serverBase}${imgUri.startsWith('/') ? '' : '/'}${imgUri}`;
   };
 
+  const copyOrderNo = (orderNo: string) => {
+    Clipboard.setString(orderNo);
+    Alert.alert('Tersalin', `Nomor pesanan ${orderNo} telah disalin.`);
+  };
+
   if (!user) {
     return (
       <View style={[styles.container, styles.centerBox, { paddingTop: insets.top }]}>
-        <Package size={50} color="#94A3B8" />
+        <Package size={52} color="#CBD5E1" />
         <Text style={styles.notLoggedTitle}>Masuk untuk Melihat Pesanan</Text>
         <Text style={styles.notLoggedDesc}>
           Pantau proses cetak dan riwayat transaksi dengan akun Anda.
@@ -107,7 +138,15 @@ export const OrdersScreen = ({ navigation }: any) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <Text style={styles.headerTitle}>Pesanan Saya</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Pesanan Saya</Text>
+          <TouchableOpacity
+            style={styles.refreshIconBtn}
+            onPress={() => { setRefreshing(true); loadOrders(); }}
+          >
+            <RefreshCw size={18} color="#2563EB" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tabs */}
@@ -133,24 +172,35 @@ export const OrdersScreen = ({ navigation }: any) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadOrders(); }} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => { setRefreshing(true); loadOrders(); }}
+            tintColor="#2563EB"
+          />
         }
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 40 }} />
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text style={styles.loadingText}>Memuat pesanan...</Text>
+          </View>
         ) : orders.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Package size={48} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>Belum Ada Pesanan</Text>
+            <Package size={52} color="#CBD5E1" />
+            <Text style={styles.emptyTitle}>
+              {selectedTab === 'all' ? 'Belum Ada Pesanan' : `Tidak Ada Pesanan "${TABS.find(t => t.id === selectedTab)?.label || selectedTab}"`}
+            </Text>
             <Text style={styles.emptyDesc}>
               Pesanan percetakan Anda akan muncul di sini beserta alur proses kerjanya.
             </Text>
-            <TouchableOpacity 
-              style={styles.orderNowBtn}
-              onPress={() => navigation.navigate('Katalog')}
-            >
-              <Text style={styles.orderNowBtnText}>Cetak Sekarang</Text>
-            </TouchableOpacity>
+            {selectedTab === 'all' && (
+              <TouchableOpacity
+                style={styles.orderNowBtn}
+                onPress={() => navigation.navigate('Katalog')}
+              >
+                <Text style={styles.orderNowBtnText}>Cetak Sekarang</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           orders.map((order) => {
@@ -161,19 +211,31 @@ export const OrdersScreen = ({ navigation }: any) => {
               border: '#E2E8F0',
             };
             const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
-            const isNeedPayment = order.status === 'MENUNGGU_PEMBAYARAN' || order.status === 'PENDING';
+            const isNeedPayment = order.status === 'MENUNGGU_PEMBAYARAN';
+            const isRejected = order.status === 'PEMBAYARAN_DITOLAK';
+            const isCancelled = order.status === 'DIBATALKAN';
+            const isDone = order.status === 'SELESAI';
+            const statusIcon = STATUS_ICONS[order.status];
 
             return (
               <TouchableOpacity
                 key={order.id}
-                style={styles.orderCard}
+                style={[
+                  styles.orderCard,
+                  { borderLeftColor: statusMeta.color, borderLeftWidth: 4 },
+                ]}
                 activeOpacity={0.85}
                 onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
               >
                 {/* Order Card Header */}
                 <View style={styles.orderCardHeader}>
                   <View style={styles.orderNoCol}>
-                    <Text style={styles.orderNo}>{order.orderNo || `#${order.id.slice(0, 8)}`}</Text>
+                    <TouchableOpacity
+                      onLongPress={() => copyOrderNo(order.orderNo || order.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.orderNo}>{order.orderNo || `#${order.id.slice(0, 8)}`}</Text>
+                    </TouchableOpacity>
                     <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
                   </View>
                   <View
@@ -182,6 +244,7 @@ export const OrdersScreen = ({ navigation }: any) => {
                       { backgroundColor: statusMeta.bg, borderColor: statusMeta.border },
                     ]}
                   >
+                    {statusIcon}
                     <Text style={[styles.statusBadgeText, { color: statusMeta.color }]}>
                       {statusMeta.label}
                     </Text>
@@ -200,9 +263,27 @@ export const OrdersScreen = ({ navigation }: any) => {
                         {firstItem.product?.name || 'Produk Percetakan'}
                       </Text>
                       <Text style={styles.productSub}>
-                        {firstItem.quantity} pcs {order.items.length > 1 ? `(+${order.items.length - 1} item lain)` : ''}
+                        {firstItem.quantity} pcs
+                        {order.items.length > 1 ? ` (+${order.items.length - 1} item lain)` : ''}
                       </Text>
+                      {firstItem.product?.estDays && (
+                        <Text style={styles.estDaysText}>
+                          Est. {firstItem.product.estDays} hari kerja
+                        </Text>
+                      )}
                     </View>
+                  </View>
+                )}
+
+                {/* Cancelled / Rejected banner */}
+                {(isCancelled || isRejected) && (
+                  <View style={[styles.alertBanner, { backgroundColor: isRejected ? '#FEF2F2' : '#F8FAFC', borderColor: isRejected ? '#FECACA' : '#E2E8F0' }]}>
+                    <XCircle size={13} color={isRejected ? '#DC2626' : '#94A3B8'} />
+                    <Text style={[styles.alertBannerText, { color: isRejected ? '#DC2626' : '#64748B' }]}>
+                      {isRejected
+                        ? 'Bukti pembayaran Anda ditolak. Silakan unggah ulang.'
+                        : 'Pesanan ini telah dibatalkan.'}
+                    </Text>
                   </View>
                 )}
 
@@ -214,13 +295,23 @@ export const OrdersScreen = ({ navigation }: any) => {
                   </View>
 
                   <View style={styles.actionButtonsRow}>
-                    {isNeedPayment ? (
+                    {(isNeedPayment || isRejected) ? (
                       <TouchableOpacity
-                        style={styles.payNowBtn}
+                        style={[styles.payNowBtn, isRejected && { backgroundColor: '#DC2626' }]}
                         onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
                       >
                         <CreditCard size={14} color="#FFFFFF" />
-                        <Text style={styles.payNowBtnText}>Upload Bayar</Text>
+                        <Text style={styles.payNowBtnText}>
+                          {isRejected ? 'Upload Ulang' : 'Upload Bayar'}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : isDone ? (
+                      <TouchableOpacity
+                        style={styles.invoiceBtn}
+                        onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
+                      >
+                        <FileText size={14} color="#16A34A" />
+                        <Text style={styles.invoiceBtnText}>Lihat Invoice</Text>
                       </TouchableOpacity>
                     ) : (
                       <TouchableOpacity
@@ -257,24 +348,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
     marginTop: 16,
+    textAlign: 'center',
   },
   notLoggedDesc: {
     fontSize: 13,
     color: '#94A3B8',
     textAlign: 'center',
     marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   loginBtn: {
     backgroundColor: '#2563EB',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 28,
+    paddingVertical: 13,
     borderRadius: 14,
     marginTop: 20,
   },
   loginBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
   headerBar: {
@@ -284,10 +376,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#0F172A',
+  },
+  refreshIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabsContainer: {
     backgroundColor: '#FFFFFF',
@@ -301,7 +406,7 @@ const styles = StyleSheet.create({
   },
   tabChip: {
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 999,
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
@@ -321,36 +426,47 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 50,
     gap: 12,
   },
-  emptyContainer: {
-    padding: 40,
+  loadingBox: {
+    paddingTop: 50,
     alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: '#94A3B8',
+  },
+  emptyContainer: {
+    paddingTop: 60,
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#0F172A',
-    marginTop: 12,
+    marginTop: 14,
+    textAlign: 'center',
   },
   emptyDesc: {
     fontSize: 12,
     color: '#94A3B8',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 6,
     lineHeight: 18,
   },
   orderNowBtn: {
     backgroundColor: '#2563EB',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 11,
+    borderRadius: 14,
+    marginTop: 20,
   },
   orderNowBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   orderCard: {
@@ -359,6 +475,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     padding: 14,
+    overflow: 'hidden',
   },
   orderCardHeader: {
     flexDirection: 'row',
@@ -366,7 +483,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: '#F1F5F9',
   },
   orderNoCol: {
     flex: 1,
@@ -382,10 +499,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
+    maxWidth: 150,
   },
   statusBadgeText: {
     fontSize: 10,
@@ -398,8 +519,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   productImg: {
-    width: 44,
-    height: 44,
+    width: 46,
+    height: 46,
     borderRadius: 10,
     backgroundColor: '#F1F5F9',
   },
@@ -416,6 +537,28 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 2,
   },
+  estDaysText: {
+    fontSize: 10,
+    color: '#7C3AED',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  alertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  alertBannerText: {
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 15,
+  },
   orderCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -429,7 +572,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
     color: '#2563EB',
   },
@@ -444,11 +587,27 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: '#D97706',
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 10,
   },
   payNowBtnText: {
     color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  invoiceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  invoiceBtnText: {
+    color: '#16A34A',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -458,7 +617,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#EFF6FF',
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#BFDBFE',
