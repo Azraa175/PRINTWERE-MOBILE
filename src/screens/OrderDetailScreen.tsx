@@ -265,6 +265,24 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Invoice Digital Link */}
+          <TouchableOpacity
+            style={styles.invoiceBtn}
+            onPress={() => {
+              const invoiceUrl = `https://printwere.vercel.app/orders/${order.id}/invoice`;
+              Linking.openURL(invoiceUrl);
+            }}
+          >
+            <View style={styles.invoiceBtnLeft}>
+              <FileText size={18} color="#2563EB" />
+              <View>
+                <Text style={styles.invoiceBtnTitle}>Faktur / Invoice Digital</Text>
+                <Text style={styles.invoiceBtnSub}>Lihat rincian resmi & unduh format PDF</Text>
+              </View>
+            </View>
+            <ExternalLink size={16} color="#2563EB" />
+          </TouchableOpacity>
         </View>
 
         {/* Status History Logs */}
@@ -564,6 +582,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#2563EB',
+  },
+  invoiceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EFF6FF',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginTop: 14,
+  },
+  invoiceBtnLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  invoiceBtnTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1D4ED8',
+  },
+  invoiceBtnSub: {
+    fontSize: 10,
+    color: '#64748B',
+    marginTop: 1,
   },
   logsList: {
     gap: 10,
