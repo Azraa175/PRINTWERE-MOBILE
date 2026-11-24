@@ -123,6 +123,7 @@ export const api = {
     shippingAddress: string;
     shippingMethod: string;
     shippingCost: number;
+    phone?: string;
   }) => {
     return request('/api/mobile/orders', {
       method: 'POST',

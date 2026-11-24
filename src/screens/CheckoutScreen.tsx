@@ -89,6 +89,7 @@ export const CheckoutScreen = ({ navigation }: any) => {
         items: orderItems,
         totalAmount: grandTotal,
         paymentMethod,
+        phone: recipientPhone.trim(),
         shippingAddress: shippingAddress.trim(),
         shippingMethod: deliveryType === 'PICKUP' ? 'Ambil di Toko' : 'Kurir Standar (JNE/J&T)',
         shippingCost,
