@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -99,13 +100,26 @@ export const CheckoutScreen = ({ navigation }: any) => {
         clearCart();
         const createdOrder = res.data;
         if (paymentMethod === 'QRIS') {
-          // QRIS: no upload needed, go directly to order detail
           Alert.alert(
             'Pesanan Dibuat!',
-            `No. Pesanan: ${createdOrder.orderNo}\nSilakan selesaikan pembayaran QRIS.`,
+            `No. Pesanan: ${createdOrder.orderNo}\nSilakan selesaikan pembayaran online via Midtrans.`,
             [
               {
-                text: 'Lihat Detail',
+                text: 'Bayar Sekarang',
+                onPress: async () => {
+                  try {
+                    const snapRes = await api.getSnapPayment(createdOrder.id);
+                    if (snapRes.success && snapRes.redirectUrl) {
+                      Linking.openURL(snapRes.redirectUrl);
+                    }
+                  } catch (e) {
+                    console.log('Open snap error:', e);
+                  }
+                  navigation.replace('OrderDetail', { orderId: createdOrder.id });
+                },
+              },
+              {
+                text: 'Nanti',
                 onPress: () => navigation.replace('OrderDetail', { orderId: createdOrder.id }),
               },
             ]

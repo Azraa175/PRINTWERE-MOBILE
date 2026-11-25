@@ -131,6 +131,14 @@ export const api = {
     });
   },
 
+  // Midtrans Snap
+  getSnapPayment: async (orderId: string) => {
+    return request('/api/payment/snap', {
+      method: 'POST',
+      body: JSON.stringify({ orderId }),
+    });
+  },
+
   // Payment proof
   uploadPaymentProof: async (orderId: string, proofUrl: string) => {
     return request(`/api/mobile/orders/${orderId}/payment`, {

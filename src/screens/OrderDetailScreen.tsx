@@ -228,22 +228,41 @@ export const OrderDetailScreen = ({ route, navigation }: any) => {
           <View style={[styles.paymentAlertBox, isPaymentRejected && { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
             <View style={styles.paymentAlertContent}>
               <Text style={[styles.paymentAlertTitle, isPaymentRejected && { color: '#991B1B' }]}>
-                {isPaymentRejected ? 'Bukti Ditolak' : (order.paymentMethod === 'QRIS' ? 'Bayar QRIS' : 'Bayar Sekarang')}
+                {isPaymentRejected ? 'Bukti Ditolak' : (order.paymentMethod === 'QRIS' ? 'Bayar Online' : 'Bayar Sekarang')}
               </Text>
               <Text style={[styles.paymentAlertDesc, isPaymentRejected && { color: '#B91C1C' }]}>
                 {isPaymentRejected
                   ? 'Admin menolak bukti pembayaran. Upload ulang.'
                   : (order.paymentMethod === 'QRIS'
-                      ? 'Selesaikan pembayaran QRIS di kasir/outlet.'
+                      ? 'Bayar instan via Midtrans (QRIS/E-Wallet/VA).'
                       : `Total: ${formatRupiah(order.totalAmount)}`)}
               </Text>
             </View>
-            {order.paymentMethod !== 'QRIS' && (
+            {order.paymentMethod === 'QRIS' ? (
+              <TouchableOpacity
+                style={[styles.uploadProofBtn, { backgroundColor: '#2563EB' }]}
+                onPress={async () => {
+                  try {
+                    const snapRes = await api.getSnapPayment(order.id);
+                    if (snapRes.success && snapRes.redirectUrl) {
+                      Linking.openURL(snapRes.redirectUrl);
+                    } else {
+                      Alert.alert('Gagal', snapRes.error || 'Gagal memuat pembayaran Midtrans');
+                    }
+                  } catch (e: any) {
+                    Alert.alert('Kesalahan', e.message || 'Gagal membuka pembayaran');
+                  }
+                }}
+              >
+                <CreditCard size={15} color="#FFFFFF" />
+                <Text style={styles.uploadProofBtnText}>Bayar Midtrans</Text>
+              </TouchableOpacity>
+            ) : (
               <TouchableOpacity
                 style={[styles.uploadProofBtn, isPaymentRejected && { backgroundColor: '#DC2626' }]}
                 onPress={() => navigation.navigate('PaymentUpload', { orderId: order.id })}
               >
-                <CreditCard size={16} color="#FFFFFF" />
+                <CreditCard size={15} color="#FFFFFF" />
                 <Text style={styles.uploadProofBtnText}>
                   {isPaymentRejected ? 'Upload Ulang' : 'Upload Bukti'}
                 </Text>
